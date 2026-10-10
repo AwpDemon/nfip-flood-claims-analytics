@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: openfema
+    description: >
+      FEMA OpenFEMA NFIP datasets, landed as Parquet by `python -m nfip extract-bulk`
+      (bulk files) and `python -m nfip extract-increment` (REST API, rolling loss-year window).
+      Directory is `$NFIP_RAW_DIR` (default `../data/raw` relative to the dbt project; CI uses
+      `tests/fixtures/raw`). Data are redacted by FEMA: no policyholder names/addresses,
+      latitude/longitude rounded to 0.1 degree.
+    meta:
+      license: "U.S. Government work; OpenFEMA terms and conditions (https://www.fema.gov/about/openfema/terms-conditions)"
+    tables:
+      - name: nfip_claims_bulk
+        description: NFIP Redacted Claims v3, full bulk Parquet (one row per claim).
+        meta:
+          external_location: "read_parquet('{{ env_var('NFIP_RAW_DIR', '../data/raw') }}/NfipClaimsV3.parquet')"
+      - name: nfip_claims_api_increments
+        description: >
+          Claims re-pulled from the OpenFEMA v3 REST API for recent loss years. One Parquet file per
+          loss year (overwritten each run) plus a zero-row `_empty.parquet` so the glob always resolves.
+        meta:
+          external_location: "read_parquet('{{ env_var('NFIP_RAW_DIR', '../data/raw') }}/claims_api/*.parquet', union_by_name = true)"
+      - name: nfip_policies
+        description: >
+          NFIP Redacted Policies v3 (one row per policy-term transaction; ~74.7M rows in the full file).
+          Aggregated in dbt to an exposure table; never materialized row-level.
+        meta:
+          external_location: "read_parquet('{{ env_var('NFIP_RAW_DIR', '../data/raw') }}/NfipPoliciesV3.parquet')"
+      - name: nfip_multiple_loss_properties
+        description: NFIP Multiple Loss Properties v1 (repetitive-loss / severe-repetitive-loss flags, one row per property).
+        meta:
+          external_location: "read_parquet('{{ env_var('NFIP_RAW_DIR', '../data/raw') }}/NfipMultipleLossProperties.parquet')"
+
+  - name: fred
+    description: >
+      Federal Reserve Bank of St. Louis (FRED). CPIAUCSL = U.S. Bureau of Labor Statistics CPI-U,
+      all items, U.S. city average, seasonally adjusted (1982-84=100).
+    tables:
+      - name: cpi_u_monthly
+        meta:
+          external_location: "read_csv('{{ env_var('NFIP_RAW_DIR', '../data/raw') }}/cpi_u_monthly.csv', header = true)"

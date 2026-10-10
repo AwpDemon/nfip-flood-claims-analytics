@@ -1,0 +1,50 @@
+name: nfip
+version: "1.0.0"
+config-version: 2
+profile: nfip
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Calendar years with complete earned exposure in NFIP Policies v3
+  # (the file starts with policies effective 2009-01-01, so 2009 itself is under-earned).
+  exposure_start_year: 2010
+  exposure_end_year: 2025
+  # Loss years re-pulled by the incremental extract and re-merged by fact_claims.
+  incremental_lookback_years: 2
+  # CPI base year for constant-dollar measures.
+  cpi_base_year: 2025
+
+models:
+  nfip:
+    +materialized: table
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+    marts:
+      +schema: marts
+
+seeds:
+  nfip:
+    +schema: reference
+    ref_counties:
+      +column_types: {state_abbr: varchar, state_fips: varchar, county_fips3: varchar, county_fips: varchar, county_name: varchar}
+    ref_states:
+      +column_types: {state_abbr: varchar, state_fips: varchar, state_name: varchar}
+    ref_cause_of_damage:
+      +column_types: {cause_code: varchar, cause_description: varchar, cause_group: varchar}
+    ref_occupancy_types:
+      +column_types: {occupancy_code: integer, occupancy_description: varchar, occupancy_group: varchar}
+
+tests:
+  nfip:
+    +store_failures: true
+    +schema: test_failures

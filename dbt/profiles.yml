@@ -1,0 +1,10 @@
+nfip:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('NFIP_DUCKDB_PATH', '../data/warehouse/nfip.duckdb') }}"
+      threads: 4
+      settings:
+        memory_limit: "{{ env_var('NFIP_DUCKDB_MEMORY', '4GB') }}"
+        preserve_insertion_order: false

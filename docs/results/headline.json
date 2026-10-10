@@ -1,0 +1,40 @@
+{
+  "claims": 2725989.0,
+  "paid_claims": 2117326.0,
+  "total_paid_nominal": 89859530214.49016,
+  "total_paid_real": 136024194575.41403,
+  "first_year": 1978.0,
+  "last_year": 2026.0,
+  "building_share_of_bc_paid": 0.8229234687602498,
+  "share_paid_with_contents": 0.4686429959297718,
+  "share_claims_paid": 0.7767184680495776,
+  "severity_real_quantiles": {
+    "p25": 7197.027571684512,
+    "p50": 23809.42330001367,
+    "p75": 78815.33804303905,
+    "p90": 172035.75953587054,
+    "p99": 461672.9321207982
+  },
+  "severity_real_mean": 64246.23336637487,
+  "share_paid_top1pct_claims": 0.11377092968088898,
+  "share_paid_top10pct_claims": 0.47995885906733166,
+  "share_paid_top5_events": 0.4677577733325133,
+  "mlp_n": 240651.0,
+  "mlp_rl": 219028.0,
+  "mlp_srl": 34996.0,
+  "mlp_mitigated": 0.05477641896356134,
+  "mlp_insured": 0.43633311309739,
+  "mlp_in_sfha": 0.7677882078196226,
+  "outside_sfha_share_paid_claims_2010_2025": 0.2544337227668323,
+  "outside_sfha_share_paid_real_2010_2025": 0.2408325568674465,
+  "outside_sfha_share_exposure_2010_2025": 0.4531256697157905,
+  "exposure_window_paid_to_premium": 0.9383065168985665,
+  "exposure_window_years_paid_over_premium": [
+    2012,
+    2016,
+    2017,
+    2022,
+    2024
+  ],
+  "earned_policy_years_2010_2025": 66052523.56438358
+}

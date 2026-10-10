@@ -1,0 +1,13 @@
+cause_code,cause_description,cause_group
+0,Other causes,Other
+1,Tidal water overflow,Coastal / tidal
+2,"Stream, river, or lake overflow",Riverine
+3,Alluvial fan overflow,Riverine
+4,Accumulation of rainfall or snowmelt,Rainfall / pluvial
+7,Erosion-demolition,Erosion / earth movement
+8,Erosion-removal,Erosion / earth movement
+9,"Earth movement, landslide, land subsidence, sinkholes",Erosion / earth movement
+A,Closed basin lake,Riverine
+B,Expedited claim handling without site inspection,Expedited handling (cause not recorded)
+C,"Expedited claim handling, follow-up site inspection",Expedited handling (cause not recorded)
+D,"Expedited claim handling, remote adjustment pilot",Expedited handling (cause not recorded)

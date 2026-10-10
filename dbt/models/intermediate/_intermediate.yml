@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: int_claims_enriched
+    description: >
+      Claim-grain business logic: conformed dimension keys, flood-zone / occupancy / cause groups,
+      constant-dollar measures, cycle time and data-quality flags. Single source of truth for
+      fact_claims, the dimensions derived from claims, and the severity-model features.
+    columns:
+      - name: claim_id
+        data_tests: [unique, not_null]
+      - name: cpi_factor
+        description: CPI-U factor to base-year dollars for the loss year.
+        data_tests: [not_null]
+      - name: flood_zone_group
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['V (coastal high hazard)', 'A (1% annual chance)', 'X/B/C (moderate-minimal)', 'D (undetermined)', 'Unknown']
+      - name: occupancy_group
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Single-family', 'Multi-family 2-4', 'Multi-family 5+', 'Non-residential', 'Manufactured home', 'Condo association', 'Residential unit', 'Unknown']
+      - name: dq_negative_payment
+        description: Any payment component < 0 (FEMA - re-issued uncashed checks). Baseline ~0.005% of claims.
+        data_tests:
+          - flag_rate_below:
+              arguments:
+                max_rate: 0.001
+      - name: dq_building_paid_exceeds_coverage
+        description: Building paid > 101% of building coverage. Baseline ~0.4% of claims.
+        data_tests:
+          - flag_rate_below:
+              arguments:
+                max_rate: 0.01
+      - name: dq_built_after_loss
+        description: Original construction date after date of loss (data-entry or rebuild date). Baseline ~0.5%.
+        data_tests:
+          - flag_rate_below:
+              arguments:
+                max_rate: 0.01
+      - name: dq_construction_date_sentinel
+        description: originalConstructionDate = 1492-10-12, a placeholder for unknown. Baseline ~12.2% (nulled).
+        data_tests:
+          - flag_rate_below:
+              arguments:
+                max_rate: 0.15
+      - name: dq_missing_flood_zone
+        description: Rated flood zone not reported. Baseline ~5.1%, concentrated in older claims.
+        data_tests:
+          - flag_rate_below:
+              arguments:
+                max_rate: 0.06
+      - name: dq_missing_county
+        description: County missing or inconsistent with state. Baseline ~2.3%.
+        data_tests:
+          - flag_rate_below:
+              arguments:
+                max_rate: 0.03
+
+  - name: int_policy_earned_exposure
+    description: >
+      Earned policy-years and earned premium by county x calendar year x rated flood zone x
+      occupancy code, computed pro-rata by days from ~74.7M policy-term rows.
+    columns:
+      - name: earned_policy_years
+        data_tests:
+          - not_null
+          - non_negative
+      - name: earned_premium
+        description: Pro-rata earned share of totalInsurancePremiumOfThePolicy (refund rows can be negative).

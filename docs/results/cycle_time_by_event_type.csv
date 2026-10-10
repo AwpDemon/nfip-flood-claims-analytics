@@ -1,0 +1,6 @@
+event_type,paid_claims,median_days,p90_days
+Hurricane,484506,100.0,474.0
+No event name,153611,53.0,189.0
+Other named flood event,110175,69.0,269.0
+Tropical storm,25076,69.0,210.0
+Nor'easter,11857,51.0,140.0

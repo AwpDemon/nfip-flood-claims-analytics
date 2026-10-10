@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: stg_openfema__claims
+    description: >
+      One row per NFIP claim: bulk file unioned with API increments, de-duplicated on claim id
+      (newest snapshot wins), typed and renamed to snake_case.
+    columns:
+      - name: claim_id
+        description: OpenFEMA record id (primary key).
+        data_tests: [unique, not_null]
+      - name: record_source
+        description: Which physical source supplied the surviving row.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['bulk', 'api']
+      - name: date_of_loss
+        description: Date water first entered the insured building.
+        data_tests: [not_null]
+      - name: loss_year
+        data_tests:
+          - not_null
+          - in_range:
+              arguments:
+                min_value: 1970
+                max_value: 2030
+      - name: state_abbr
+        data_tests: [not_null]
+      - name: building_paid
+        description: Building payment. FEMA notes negatives occur when an uncashed check is re-issued.
+        data_tests:
+          - non_negative:
+              config:
+                severity: warn
+      - name: total_paid
+        description: Building + contents + Increased Cost of Compliance payments (nominal $).
+
+  - name: stg_openfema__policies
+    description: Policy-term transactions from NFIP Redacted Policies v3, columns needed for exposure only.
+    columns:
+      - name: policy_effective_date
+        data_tests: [not_null]
+      - name: term_end_date
+        description: Earlier of scheduled termination and cancellation.
+
+  - name: stg_openfema__multiple_loss_properties
+    description: NFIP Multiple Loss Properties v1, one row per property with RL/SRL flags.
+    columns:
+      - name: property_id
+        data_tests: [unique, not_null]
+      - name: total_losses
+        data_tests:
+          - in_range:
+              arguments:
+                min_value: 1
+
+  - name: stg_fred__cpi_annual
+    description: Annual-average CPI-U and the factor to constant base-year dollars.
+    columns:
+      - name: calendar_year
+        data_tests: [unique, not_null]
+      - name: months_observed
+        description: 12 normally; 11 for 2025 because BLS skipped October 2025 CPI (shutdown).
+        data_tests:
+          - in_range:
+              arguments:
+                min_value: 11
+                max_value: 12
+      - name: to_base_year_factor
+        description: Multiply a year-t nominal dollar by this to express it in base-year dollars.
+        data_tests: [not_null]

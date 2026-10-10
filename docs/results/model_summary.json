@@ -1,0 +1,135 @@
+{
+  "train_rows": 369832,
+  "test_rows": 72931,
+  "train_years": [
+    2000,
+    2019
+  ],
+  "test_years": [
+    2020,
+    2025
+  ],
+  "sample": "hash(claim_id) % 3 = 0",
+  "top_states": [
+    "LA",
+    "TX",
+    "NJ",
+    "FL",
+    "NY",
+    "NC",
+    "PA",
+    "MS",
+    "VA",
+    "IL",
+    "AL",
+    "SC",
+    "MO",
+    "CT",
+    "OH"
+  ],
+  "metrics": [
+    {
+      "model": "Baseline: zone mean",
+      "normalized_gini": 0.11423723711287126,
+      "mean_gamma_deviance": 1.8159060249533934,
+      "mae": 79137.095512353,
+      "actual_to_expected": 1.1104587972584499,
+      "top_decile_lift": 1.0777588738606294
+    },
+    {
+      "model": "Gamma GLM (underwriting features)",
+      "normalized_gini": 0.42577215623042614,
+      "mean_gamma_deviance": 1.6651063251443212,
+      "mae": 74796.61698847152,
+      "actual_to_expected": 1.257636237044619,
+      "top_decile_lift": 1.9057059533535163
+    },
+    {
+      "model": "Gamma GLM + calendar-year trend",
+      "normalized_gini": 0.436280730965592,
+      "mean_gamma_deviance": 1.5815093329541305,
+      "mae": 80262.67100859531,
+      "actual_to_expected": 0.9521009985380864,
+      "top_decile_lift": 1.9307188630721956
+    },
+    {
+      "model": "GBM, Gamma loss (underwriting features)",
+      "normalized_gini": 0.5704919738986429,
+      "mean_gamma_deviance": 1.5661414357103836,
+      "mae": 68668.42781096903,
+      "actual_to_expected": 1.54322135831717,
+      "top_decile_lift": 2.6134173606075106
+    },
+    {
+      "model": "GBM + post-loss facts (triage only)",
+      "normalized_gini": 0.6312521782574817,
+      "mean_gamma_deviance": 1.460737236385192,
+      "mae": 65730.04392130925,
+      "actual_to_expected": 1.537787232559081,
+      "top_decile_lift": 2.76632753358586
+    }
+  ],
+  "gini_by_year": [
+    {
+      "loss_year": 2020,
+      "n": 8166,
+      "gini_glm": 0.35597703647513,
+      "gini_gbm": 0.4970226981226151,
+      "a_to_e_glm": 0.6215781756624033,
+      "a_to_e_glm_trended": 0.5016060691537735,
+      "a_to_e_gbm": 0.8428784364089321
+    },
+    {
+      "loss_year": 2021,
+      "n": 11743,
+      "gini_glm": 0.4898039634592407,
+      "gini_gbm": 0.5801193972223581,
+      "a_to_e_glm": 0.7155662084273909,
+      "a_to_e_glm_trended": 0.5625955165914133,
+      "a_to_e_gbm": 0.9924379696273676
+    },
+    {
+      "loss_year": 2022,
+      "n": 15574,
+      "gini_glm": 0.5389567022474737,
+      "gini_gbm": 0.6404945684975325,
+      "a_to_e_glm": 1.8434244931154047,
+      "a_to_e_glm_trended": 1.4331972298787128,
+      "a_to_e_gbm": 2.136475773334546
+    },
+    {
+      "loss_year": 2023,
+      "n": 5434,
+      "gini_glm": 0.3892933209339388,
+      "gini_gbm": 0.4693697521206706,
+      "a_to_e_glm": 0.9643033379733227,
+      "a_to_e_glm_trended": 0.7203090936173726,
+      "a_to_e_gbm": 1.1413177447782987
+    },
+    {
+      "loss_year": 2024,
+      "n": 28466,
+      "gini_glm": 0.44322341281875366,
+      "gini_gbm": 0.5778645152295917,
+      "a_to_e_glm": 1.5392699542935229,
+      "a_to_e_glm_trended": 1.1162221873019715,
+      "a_to_e_gbm": 1.7898414298631526
+    },
+    {
+      "loss_year": 2025,
+      "n": 3548,
+      "gini_glm": 0.43734864643375765,
+      "gini_gbm": 0.5076616677492803,
+      "a_to_e_glm": 0.9066382742744037,
+      "a_to_e_glm_trended": 0.6482281807475295,
+      "a_to_e_gbm": 1.1096636842432208
+    }
+  ],
+  "gbm_iterations": 400,
+  "gbm_triage_iterations": 400,
+  "glm_params": 64,
+  "glm_annual_severity_trend": 0.027674579166803825,
+  "train_mean_severity": 80893.67580626682,
+  "test_mean_severity": 90726.71781191345,
+  "runtime_seconds": 348.3
+}

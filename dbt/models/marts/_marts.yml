@@ -1,0 +1,224 @@
+version: 2
+
+models:
+  # ------------------------------------------------------------------ dimensions
+  - name: dim_date
+    description: Daily calendar dimension covering all loss dates and exposure years.
+    columns:
+      - name: date_key
+        data_tests: [unique, not_null]
+
+  - name: dim_geography
+    description: >
+      County-grain geography (2020 Census FIPS) plus one 'UNK-<state>' member per state and any
+      observed county codes not on the 2020 list (e.g. Connecticut planning regions).
+    columns:
+      - name: geography_key
+        description: 5-digit county FIPS, or 'UNK-<state>' when the county is missing/inconsistent.
+        data_tests: [unique, not_null]
+      - name: state_abbr
+        data_tests: [not_null]
+      - name: member_source
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['census_2020', 'unknown_member', 'observed_unlisted']
+
+  - name: dim_flood_zone
+    description: One row per FIRM rated flood-zone code with SFHA flag and analysis groups.
+    columns:
+      - name: flood_zone_key
+        data_tests: [unique, not_null]
+      - name: flood_zone_group
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['V (coastal high hazard)', 'A (1% annual chance)', 'X/B/C (moderate-minimal)', 'D (undetermined)', 'Unknown']
+
+  - name: dim_event
+    description: >
+      Flood events derived from the claim `floodEvent` name, keyed by (name, loss year) because
+      storm names are re-used across seasons.
+    columns:
+      - name: event_key
+        data_tests: [unique, not_null]
+      - name: event_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Hurricane', 'Tropical storm', "Nor''easter", 'Other named flood event', 'No event name']
+      - name: loss_date_span_days
+        data_tests:
+          - in_range:
+              arguments:
+                min_value: 1
+                max_value: 366
+
+  - name: dim_occupancy
+    description: NFIP occupancy codes (legacy 1-6 and Risk Rating 2.0 codes 11-19) with analysis groups.
+    columns:
+      - name: occupancy_key
+        data_tests: [unique, not_null]
+
+  - name: dim_cause_of_damage
+    description: NFIP cause-of-damage codes; B/C/D are claim-handling codes, not physical causes.
+    columns:
+      - name: cause_key
+        data_tests: [unique, not_null]
+
+  # ------------------------------------------------------------------ facts
+  - name: fact_claims
+    description: >
+      Claim-grain fact (one row per NFIP claim), incremental on a rolling loss-year window.
+      Measures in nominal and constant base-year dollars; data-quality flags carried for filtering.
+    columns:
+      - name: claim_id
+        data_tests: [unique, not_null]
+      - name: date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: geography_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: geography_key
+      - name: flood_zone_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_flood_zone')
+                field: flood_zone_key
+      - name: event_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_event')
+                field: event_key
+      - name: occupancy_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_occupancy')
+                field: occupancy_key
+      - name: cause_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cause_of_damage')
+                field: cause_key
+      - name: total_paid
+        data_tests:
+          - not_null
+          - non_negative:
+              config:
+                severity: warn
+      - name: total_paid_real
+        description: total_paid x CPI-U factor (constant base-year dollars).
+        data_tests: [not_null]
+      - name: building_age_at_loss_years
+        description: >
+          Years from (cleaned) construction date to loss. 4 claims have typo'd construction years
+          (1069/1070 - almost certainly 1969/1970), so this test warns on any and errors above 100.
+        data_tests:
+          - in_range:
+              arguments:
+                min_value: 0
+                max_value: 400
+              config:
+                warn_if: ">0"
+                error_if: ">100"
+      - name: days_loss_to_last_payment
+        description: Days from date of loss to the most recent payment (cycle-time proxy).
+        data_tests:
+          - non_negative
+
+  - name: fact_policy_exposure
+    description: Earned exposure fact at county x year x rated zone x occupancy grain.
+    columns:
+      - name: exposure_key
+        data_tests: [unique, not_null]
+      - name: geography_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: geography_key
+      - name: flood_zone_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_flood_zone')
+                field: flood_zone_key
+      - name: occupancy_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_occupancy')
+                field: occupancy_key
+      - name: period_date_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+              config:
+                where: "is_complete_exposure_year"
+      - name: earned_policy_years
+        data_tests: [not_null, non_negative]
+
+  # ------------------------------------------------------------------ aggregate marts
+  - name: mart_loss_experience_state_year
+    description: Frequency, severity, loss cost and paid-to-premium proxy by state and year.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: ['state_abbr', 'calendar_year']
+    columns:
+      - name: paid_to_premium_proxy
+        description: Paid losses / earned premium. NOT a statutory loss ratio (undeveloped, no LAE, premium ex-fees).
+        data_tests: [non_negative]
+      - name: frequency_per_1000
+        data_tests: [non_negative]
+
+  - name: mart_loss_experience_zone_year
+    description: Frequency, severity, loss cost by flood-zone group and year.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: ['flood_zone_group', 'calendar_year']
+
+  - name: mart_event_losses
+    description: Event league table with nominal and constant-dollar paid losses.
+    columns:
+      - name: event_key
+        data_tests: [unique, not_null]
+
+  - name: mart_loss_cost_relativity
+    description: Credibility-weighted loss-cost relativities by state x flood-zone group (constant $).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: ['state_abbr', 'flood_zone_group']
+    columns:
+      - name: credibility_z
+        data_tests:
+          - in_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+
+  - name: mart_repetitive_loss_by_state
+    description: Repetitive-loss exhibit from NFIP Multiple Loss Properties.
+    columns:
+      - name: state_abbr
+        data_tests: [unique, not_null]

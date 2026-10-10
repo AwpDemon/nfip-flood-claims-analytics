@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nfip"
+version = "0.1.0"
+description = "Analytics-engineering project on FEMA OpenFEMA NFIP redacted claims and policies"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Report generators: long markdown sentences and SQL kept on one line for readability of the output.
+"src/nfip/analysis.py" = ["E501"]
+"src/nfip/quality.py" = ["E501"]

@@ -1,0 +1,15 @@
+occupancy_code,occupancy_description,occupancy_group
+1,Single family residence,Single-family
+2,2 to 4 unit residential building,Multi-family 2-4
+3,Residential building with more than 4 units,Multi-family 5+
+4,Non-residential building,Non-residential
+6,Non-residential business,Non-residential
+11,Single-family residential building (excl. mobile home / unit in multi-unit building),Single-family
+12,"Residential non-condo building with 2-4 units, all units insured",Multi-family 2-4
+13,"Residential non-condo building with 5+ units, all units insured",Multi-family 5+
+14,Residential mobile/manufactured home,Manufactured home
+15,Residential condo association (building with one or more units),Condo association
+16,Single residential unit within a multi-unit building,Residential unit
+17,Non-residential mobile/manufactured home,Non-residential
+18,Non-residential building,Non-residential
+19,Non-residential unit within a multi-unit building,Non-residential
